@@ -1,0 +1,146 @@
+﻿@page
+@{}
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Books</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body style="background-color:burlywood;">
+    <div>
+        <!-- Navigation bar code -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+            <a class="navbar-brand" href="#">Books</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <button class="btn btn-outline-dark" data-toggle="modal" data-target="#addBooks">Add New Book</button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- following division is creating main area of the web page where all books data will display -->
+        <div class="container">
+            <div class="row" id="allBooks">
+            </div>
+        </div>
+    </div>
+
+    <!-- below mentioned code will create the template to add a new book -->
+    <div class="modal" tabindex="-1" role="dialog" id="addBooks">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Books</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="book_Title">Book Title</label>
+                            <input type="text" class="form-control" id="book_Title" aria-describedby="book_TitleHelp" placeholder="Book Title">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="author">Author</label>
+                            <input type="text" class="form-control" id="author" aria-describedby="authorHelp" placeholder="Author Name">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="publisher">Publisher Name</label>
+                            <input type="text" class="form-control" id="publisher" aria-describedby="publisherHelp" placeholder="Publisher Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="year_of_publish">Year of Publish</label>
+                            <input type="number" class="form-control" id="year_of_publish" aria-describedby="Year_of_publishHelp" placeholder="Year of Publish">
+                        </div>
+
+                        <div class="form-group" id="result">
+
+
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="addBooks()">Add Books</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <! -- java script files that will help to link the front end and back end -->
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <script>
+        var uri = 'api/Books';
+        $(document).ready(function () {
+            // Gets all Books
+            $.getJSON(uri)
+                .done(function (data) {
+                    $("#BooksTemplate").tmpl(data).appendTo("#allBooks");
+                });
+        });
+        function getAllBooks() {
+            $.getJSON(uri)
+                .done(function (data) {
+                    $("#allBooks").text("");
+                    $("#BooksTemplate").tmpl(data).appendTo("#allBooks");
+                });
+        }
+        function addBooks() {
+            var _book_Title = $('#book_Title').val();
+            var _author = $('#author').val();
+            var _publisher = $('#publisher').val();
+            var _year_of_publish = parseInt($('#year_of_publish').val());
+            var Book = {
+                book_Title: _book_Title,
+                author: _author,
+                publisher: _publisher,
+                year_of_publish: _year_of_publish
+            };
+            $.ajax({
+                type: "POST",
+                url: uri,
+                data: JSON.stringify(Book),
+                contentType: "application/json; charset=utf-8"
+            }).done(function (response) {
+                $("#result").html("Success");
+                getAllBooks();
+            }).fail(function (jqXHR, textStatus) {
+                $("#result").html("An error occured when Adding the bike record.");
+            });
+        }
+    </script>
+
+    <script id="BooksTemplate" type="text/x-jquery-tmpl">
+        <div class="col-lg-3" style="margin:10px;">
+            <div class="card card text-white bg-dark border-warning mb-3" style="width: 18rem; padding:20px">
+                <div class="card-body">
+                    <h5 class="card-title">Book Title: ${book_Title}</h5>
+                    <p class="card-text">Author :  ${author}</p>
+                    <p class="card-text">Publisher : ${publisher}</p>
+                    <p class="card-text">Year of Publish : ${year_of_publish}</p>
+                </div>
+                <span>
+                    <button class="btn btn-primary" onclick="getbookForUpdate('${book_ID}')" data-toggle="modal" data-target="#updateBook">Update</button>
+                    <a href="#" class="btn btn-danger" onclick="remove('${book_ID}')">Delete</a>
+                </span>
+            </div>
+        </div>
+    </script>
+
+
+</body>
+</html>
