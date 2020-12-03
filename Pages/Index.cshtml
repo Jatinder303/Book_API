@@ -77,6 +77,60 @@
         </div>
     </div>
 
+
+    <!-- below mentioned code will create the template to update book data -->
+
+    <div class="modal" tabindex="-1" role="dialog" id="UpdateBooks">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Book</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+
+                            <input type="hidden" class="form-control" id="_id" aria-describedby="IdHelp">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="update_book_Title">Book Title</label>
+                            <input type="text" class="form-control" id="update_book_Title" aria-describedby="update_book_TitleHelp" placeholder="Book Title">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="update_author">Author</label>
+                            <input type="text" class="form-control" id="update_author" aria-describedby="update_authorHelp" placeholder="Author Name">
+
+                        </div>
+                        <div class="form-group">
+                            <label for="update_publisher">Publisher Name</label>
+                            <input type="text" class="form-control" id="update_publisher" aria-describedby="update_publisherHelp" placeholder="Publisher Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="update_year_of_publish">Year of Publish</label>
+                            <input type="number" class="form-control" id="update_year_of_publish" aria-describedby="update_Year_of_publishHelp" placeholder="Year of Publish">
+                        </div>
+
+                        <div class="form-group" id="update_result">
+
+
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="UpdateBooks()">Update Books</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <! -- java script files that will help to link the front end and back end -->
     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
@@ -85,13 +139,15 @@
 
     <script>
         var uri = 'api/Books';
+        //Java script main function so JS start from here
         $(document).ready(function () {
-            // Gets all Books
             $.getJSON(uri)
                 .done(function (data) {
                     $("#BooksTemplate").tmpl(data).appendTo("#allBooks");
                 });
         });
+
+        // function to get all books data and show on web page
         function getAllBooks() {
             $.getJSON(uri)
                 .done(function (data) {
@@ -99,6 +155,8 @@
                     $("#BooksTemplate").tmpl(data).appendTo("#allBooks");
                 });
         }
+
+        // function to add data for new book
         function addBooks() {
             var _book_Title = $('#book_Title').val();
             var _author = $('#author').val();
@@ -122,8 +180,68 @@
                 $("#result").html("An error occured when Adding the bike record.");
             });
         }
+
+
+
+        // funtion to fill the data into update template
+
+        function getbookForUpdate(id) {
+            $.ajax({
+                type: "GET",
+                url: uri + "/" + id,
+                contentType: "application/json"
+            }).done(function (response) {
+                $('#_id').val(response.book_ID);
+                $('#update_book_Title').val(response.book_Title);
+                $('#update_author').val(response.author);
+                $('#update_publisher').val(response.publisher);
+                $('#update_year_of_publish').val(response.year_of_publish);
+            });
+        }
+
+        // function to update data of the book
+        function UpdateBooks() {
+            var _book_Title = $('#update_book_Title').val();
+            var _author = $('#update_author').val();
+            var _publisher = $('#update_publisher').val();
+            var _year_of_publish = parseInt($('#update_year_of_publish').val());
+            var BookUpdate = {
+                book_ID: parseInt($('#_id').val()),
+                book_Title: _book_Title,
+                author: _author,
+                publisher: _publisher,
+                year_of_publish: _year_of_publish
+            };
+            $.ajax({
+                type: "PUT",
+                url: uri + "/" + $('#_id').val(),
+                data: JSON.stringify(BookUpdate),
+                contentType: "application/json; charset=utf-8"
+            }).done(function (response) {
+                $("#update_result").html("Success");
+                getAllBooks();
+            }).fail(function (jqXHR, textStatus) {
+                $("#update_result").html("An error occured when Adding the bike record.");
+            });
+        }
+
+
+        //funtion to delete a particular book based on id
+
+        function remove(id) {
+            var yes = confirm("Are you sure you want to delete this Bike?");
+            if (yes) {
+                $.ajax({
+                    type: "DELETE",
+                    url: uri + "/" + id,
+                }).done(function (response) {
+                    getAllBooks();
+                });
+            }
+        }
     </script>
 
+    <!-- below mentioned code will create the template on the web page to display all books -->
     <script id="BooksTemplate" type="text/x-jquery-tmpl">
         <div class="col-lg-3" style="margin:10px;">
             <div class="card card text-white bg-dark border-warning mb-3" style="width: 18rem; padding:20px">
@@ -134,7 +252,7 @@
                     <p class="card-text">Year of Publish : ${year_of_publish}</p>
                 </div>
                 <span>
-                    <button class="btn btn-primary" onclick="getbookForUpdate('${book_ID}')" data-toggle="modal" data-target="#updateBook">Update</button>
+                    <button class="btn btn-primary" onclick="getbookForUpdate('${book_ID}')" data-toggle="modal" data-target="#UpdateBooks">Update</button>
                     <a href="#" class="btn btn-danger" onclick="remove('${book_ID}')">Delete</a>
                 </span>
             </div>
